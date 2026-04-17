@@ -1,7 +1,7 @@
 import { useState } from "react";
 
 const BASE_URL =
-  "http://localhost:5000";
+  process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
 function fetchApi(path, options = {}) {
   const opts = {
