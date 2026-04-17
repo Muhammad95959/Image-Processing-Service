@@ -3,11 +3,34 @@ import { useState } from "react";
 const BASE_URL =
   process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
+function getStoredToken() {
+  if (typeof window === "undefined") return "";
+  return window.localStorage.getItem("token") || "";
+}
+
+function setClientToken(token) {
+  if (typeof window === "undefined") return;
+  window.localStorage.setItem("token", token);
+
+  const isHttps = window.location.protocol === "https:";
+  document.cookie = [
+    `token=${encodeURIComponent(token)}`,
+    "Path=/",
+    "Max-Age=86400",
+    "SameSite=Lax",
+    isHttps ? "Secure" : "",
+  ]
+    .filter(Boolean)
+    .join("; ");
+}
+
 function fetchApi(path, options = {}) {
+  const token = getStoredToken();
   const opts = {
     credentials: "include",
     ...options,
     headers: {
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
       ...(options.body instanceof FormData
         ? {}
         : { "Content-Type": "application/json" }),
@@ -191,6 +214,11 @@ export default function Home() {
         method: "POST",
         body: JSON.stringify(payload),
       });
+
+      if (result?.data?.token) {
+        setClientToken(result.data.token);
+      }
+
       setStatus(
         `Login success (${result.data.token ? "token returned" : "no token in response"})`,
       );
