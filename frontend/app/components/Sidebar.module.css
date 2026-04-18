@@ -1,0 +1,27 @@
+.sidebarContent {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  gap: 12px;
+}
+
+.authPrompt {
+  background: linear-gradient(180deg, var(--card-bg) 0%, rgba(13, 17, 23, 0.8) 100%);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 24px 16px;
+  text-align: center;
+  color: var(--secondary-text);
+  font-size: 14px;
+  line-height: 1.5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+}
+
+@media (max-width: 768px) {
+  .sidebarContent {
+    gap: 10px;
+  }
+}
