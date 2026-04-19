@@ -11,6 +11,7 @@ import styles from './page.module.css';
 
 export default function Home() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [userEmail, setUserEmail] = useState('');
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
@@ -79,19 +80,35 @@ export default function Home() {
 
   const handleLogout = () => {
     setIsLoggedIn(false);
+    setUserEmail('');
     setPreviewImage(null);
   };
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        setPreviewImage(event.target?.result as string);
-        setIsProcessing(true);
-        setTimeout(() => setIsProcessing(false), 1500);
-      };
-      reader.readAsDataURL(file);
+    if (!file) {
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      setPreviewImage(event.target?.result as string);
+    };
+    reader.readAsDataURL(file);
+
+    setIsProcessing(true);
+    try {
+      const uploadResult = await imageService.uploadImage(file);
+      setImageId(uploadResult.publicId);
+
+      if (uploadResult.url) {
+        setPreviewImage(uploadResult.url);
+      }
+    } catch (error) {
+      console.error('Upload failed:', error);
+    } finally {
+      setIsProcessing(false);
+      e.target.value = '';
     }
   };
 
@@ -511,6 +528,7 @@ export default function Home() {
             </div>
             <Auth
               isLoggedIn={isLoggedIn}
+              userEmail={userEmail}
               onLogin={handleLogin}
               onLogout={handleLogout}
               onOpenAuthModal={() => setIsAuthModalOpen(true)}
@@ -606,7 +624,7 @@ export default function Home() {
                 />
 
                 {/* Style/Output */}
-                <SettingsCard
+                {/* <SettingsCard
                   title="Style & Output"
                   description="Border, background, radius"
                   icon={
@@ -616,7 +634,7 @@ export default function Home() {
                     </svg>
                   }
                   settings={styleSettings}
-                />
+                /> */}
 
                 {/* Watermark */}
                 <SettingsCard
@@ -669,9 +687,11 @@ export default function Home() {
         onClose={() => setIsAuthModalOpen(false)}
         onLoginSuccess={(data) => {
           setIsLoggedIn(true);
+          setUserEmail(data?.email || data?.data?.email || '');
         }}
-        onRegisterSuccess={(data) => {
-          setIsLoggedIn(true);
+        onRegisterSuccess={() => {
+          setIsLoggedIn(false);
+          setUserEmail('');
         }}
       />
     </>

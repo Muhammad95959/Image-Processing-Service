@@ -15,6 +15,7 @@ export const authService = {
         body: JSON.stringify({ email, password }),
       });
 
+
       toast.dismiss(loadingToast);
 
       if (!response.ok) {
@@ -22,15 +23,15 @@ export const authService = {
         throw new Error(errorData.message || 'Login failed');
       }
 
-      const data = await response.json();
+      const result = await response.json();
       
       // Store token
-      if (data.token) {
-        localStorage.setItem('token', data.token);
+      if (result.data.token) {
+        localStorage.setItem('token', result.data.token);
       }
       
       toast.success('Logged in successfully!');
-      return data;
+      return result;
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Login failed';
       toast.error(message);
@@ -64,14 +65,9 @@ export const authService = {
         throw new Error(errorData.message || 'Registration failed');
       }
 
-      const data = await response.json();
-      
-      // Store token
-      if (data.token) {
-        localStorage.setItem('token', data.token);
-      }
-      
-      return data;
+      const result = await response.json();
+
+      return result;
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Registration failed';
       throw error;

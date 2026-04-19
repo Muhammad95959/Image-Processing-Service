@@ -5,12 +5,13 @@ import styles from './Auth.module.css';
 
 interface AuthProps {
   isLoggedIn: boolean;
+  userEmail?: string;
   onLogin: () => void;
   onLogout: () => void;
   onOpenAuthModal?: () => void;
 }
 
-export default function Auth({ isLoggedIn, onLogin, onLogout, onOpenAuthModal }: AuthProps) {
+export default function Auth({ isLoggedIn, userEmail, onLogin, onLogout, onOpenAuthModal }: AuthProps) {
   const [isOpen, setIsOpen] = useState(false);
 
   const handleLoginClick = () => {
@@ -44,7 +45,7 @@ export default function Auth({ isLoggedIn, onLogin, onLogout, onOpenAuthModal }:
         <div className={styles.dropdown}>
           <div className={styles.userInfo}>
             <p className={styles.userLabel}>
-              {isLoggedIn ? 'user@example.com' : 'Not authenticated'}
+              {isLoggedIn ? (userEmail || 'Authenticated user') : 'Not authenticated'}
             </p>
           </div>
 

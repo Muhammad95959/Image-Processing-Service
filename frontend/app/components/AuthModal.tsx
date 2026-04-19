@@ -8,11 +8,19 @@ import styles from './AuthModal.module.css';
 interface AuthModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onLoginSuccess?: (data: any) => void;
-  onRegisterSuccess?: (data: any) => void;
+  onLoginSuccess?: (data: unknown) => void;
+  onRegisterSuccess?: (data: unknown) => void;
 }
 
 export default function AuthModal({ isOpen, onClose, onLoginSuccess, onRegisterSuccess }: AuthModalProps) {
+    const getErrorMessage = (error: unknown, fallback: string): string => {
+      if (error instanceof Error && error.message) {
+        return error.message;
+      }
+
+      return fallback;
+    };
+
   const [isLoading, setIsLoading] = useState(false);
   const [isRegisterTab, setIsRegisterTab] = useState(false);
 
@@ -44,19 +52,15 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess, onRegisterS
     }
 
     setIsLoading(true);
-    const loadingToast = toast.loading('Logging in...');
 
     try {
       const response = await authService.login(loginEmail, loginPassword);
-      toast.dismiss(loadingToast);
-      toast.success('Login successful!');
       setLoginEmail('');
       setLoginPassword('');
       onClose();
-      onLoginSuccess?.(response);
-    } catch (error: any) {
-      toast.dismiss(loadingToast);
-      toast.error(error.message || 'Login failed');
+      onLoginSuccess?.({ ...response, email: loginEmail });
+    } catch {
+      // authService.login handles request-level toasts
     } finally {
       setIsLoading(false);
     }
@@ -99,9 +103,9 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess, onRegisterS
       setRegisterError('');
       onClose();
       onRegisterSuccess?.(response);
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast.dismiss(loadingToast);
-      const errorMessage = error.message || 'Registration failed';
+      const errorMessage = getErrorMessage(error, 'Registration failed');
       setRegisterError(errorMessage);
       toast.error(errorMessage);
     } finally {
