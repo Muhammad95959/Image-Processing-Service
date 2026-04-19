@@ -75,6 +75,33 @@
   display: none;
 }
 
+.transformButton {
+  background-color: var(--primary);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 14px 16px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-top: 8px;
+}
+
+.transformButton:hover:not(:disabled) {
+  background-color: var(--primary-hover);
+  box-shadow: 0 4px 12px rgba(88, 166, 255, 0.3);
+}
+
+.transformButton:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+.transformButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 @media (max-width: 768px) {
   .appTitle {
     font-size: 16px;

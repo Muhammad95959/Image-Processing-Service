@@ -6,6 +6,7 @@ import Auth from './components/Auth';
 import SettingsCard, { SettingValue } from './components/SettingsCard';
 import Preview from './components/Preview';
 import AuthModal from './components/AuthModal';
+import { imageService } from './services/imageService';
 import styles from './page.module.css';
 
 export default function Home() {
@@ -91,6 +92,69 @@ export default function Home() {
         setTimeout(() => setIsProcessing(false), 1500);
       };
       reader.readAsDataURL(file);
+    }
+  };
+
+  const handleTransform = async () => {
+    if (!imageId && !previewImage) {
+      alert('Please upload an image or enter a public ID');
+      return;
+    }
+
+    setIsProcessing(true);
+    try {
+      const result = await imageService.transformImage({
+        publicId: imageId,
+        width: resizeWidth,
+        height: resizeHeight,
+        zoom: resizeZoom,
+        crop: resizeCrop,
+        gravity: resizeGravity,
+        rotate: rotate,
+        flip: flip,
+        brightness: brightness,
+        contrast: contrast,
+        saturation: saturation,
+        hue: hue,
+        vibrance: vibrance,
+        gamma: gamma,
+        sharpen: sharpen,
+        unsharpMask: unsharpMask,
+        grayscale: grayscale,
+        sepia: sepia,
+        negate: negate,
+        blur: blur,
+        pixelate: pixelate,
+        vignette: vignette,
+        oilPaint: oilPaint,
+        cartoonify: cartoonify,
+        cartoonifyAmount: cartoonifyAmount,
+        art: art,
+        borderWidth: borderWidth,
+        borderColor: borderColor,
+        background: background,
+        radius: radius,
+        watermarkText: watermarkText,
+        watermarkFontFamily: watermarkFontFamily,
+        watermarkFontSize: watermarkFontSize,
+        watermarkFontColor: watermarkFontColor,
+        watermarkGravity: watermarkGravity,
+        watermarkX: watermarkX,
+        watermarkY: watermarkY,
+        watermarkOpacity: watermarkOpacity,
+        quality: quality,
+        dpr: dpr,
+        format: format,
+        fetchFormat: fetchFormat,
+      });
+
+      if (result.url) {
+        setPreviewImage(result.url);
+      }
+    } catch (error) {
+      console.error('Transform failed:', error);
+    } finally {
+      setIsProcessing(false);
     }
   };
 
@@ -578,6 +642,15 @@ export default function Home() {
                   }
                   settings={qualitySettings}
                 />
+
+                {/* Transform Button */}
+                <button
+                  onClick={handleTransform}
+                  disabled={isProcessing}
+                  className={styles.transformButton}
+                >
+                  {isProcessing ? 'Transforming...' : 'Apply Transform'}
+                </button>
               </>
             )}
           </div>
