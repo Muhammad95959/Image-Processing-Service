@@ -136,6 +136,11 @@
   padding: 14px;
 }
 
+.cardActions {
+  display: flex;
+  gap: 10px;
+}
+
 .cardMeta {
   display: flex;
   flex-direction: column;
@@ -156,6 +161,7 @@
 }
 
 .deleteButton {
+  flex: 1;
   padding: 10px 12px;
   border: 1px solid rgba(218, 54, 51, 0.35);
   border-radius: 10px;
@@ -174,6 +180,30 @@
 }
 
 .deleteButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.downloadButton {
+  flex: 1;
+  padding: 10px 12px;
+  border: 1px solid rgba(35, 134, 54, 0.35);
+  border-radius: 10px;
+  background: rgba(35, 134, 54, 0.12);
+  color: #7ee787;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.2s ease, border-color 0.2s ease;
+}
+
+.downloadButton:hover:not(:disabled) {
+  background: rgba(35, 134, 54, 0.18);
+  border-color: rgba(35, 134, 54, 0.55);
+  transform: translateY(-1px);
+}
+
+.downloadButton:disabled {
   opacity: 0.6;
   cursor: not-allowed;
 }
@@ -216,5 +246,9 @@
 
   .galleryGrid {
     grid-template-columns: 1fr;
+  }
+
+  .cardActions {
+    flex-direction: column;
   }
 }

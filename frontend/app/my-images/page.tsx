@@ -13,6 +13,7 @@ export default function MyImagesPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [downloadingId, setDownloadingId] = useState<string | null>(null);
 
   const isLoggedIn = useSyncExternalStore(
     (callback) => {
@@ -75,6 +76,38 @@ export default function MyImagesPage() {
       // Toast is handled in the service.
     } finally {
       setDeletingId(null);
+    }
+  };
+
+  const handleDownload = async (imageUrl: string | null, fallbackName: string, imageId: string) => {
+    if (!imageUrl || downloadingId === imageId) {
+      return;
+    }
+
+    setDownloadingId(imageId);
+
+    try {
+      const response = await fetch(imageUrl, { mode: 'cors' });
+      const blob = await response.blob();
+      const objectUrl = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = objectUrl;
+      link.download = fallbackName;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(objectUrl);
+    } catch {
+      const link = document.createElement('a');
+      link.href = imageUrl;
+      link.download = fallbackName;
+      link.target = '_blank';
+      link.rel = 'noreferrer';
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    } finally {
+      setDownloadingId(null);
     }
   };
 
@@ -162,13 +195,23 @@ export default function MyImagesPage() {
                       <span className={styles.cardValue}>{image.publicId || image.id}</span>
                     </div>
 
-                    <button
-                      className={styles.deleteButton}
-                      onClick={() => void handleDelete(image.id)}
-                      disabled={deletingId === image.id}
-                    >
-                      {deletingId === image.id ? 'Deleting...' : 'Delete image'}
-                    </button>
+                    <div className={styles.cardActions}>
+                      <button
+                        className={styles.downloadButton}
+                        onClick={() => void handleDownload(image.url, `${image.publicId || image.id}.jpg`, image.id)}
+                        disabled={!image.url || downloadingId === image.id}
+                      >
+                        {downloadingId === image.id ? 'Downloading...' : 'Download'}
+                      </button>
+
+                      <button
+                        className={styles.deleteButton}
+                        onClick={() => void handleDelete(image.id)}
+                        disabled={deletingId === image.id}
+                      >
+                        {deletingId === image.id ? 'Deleting...' : 'Delete image'}
+                      </button>
+                    </div>
                   </div>
                 </article>
               ))}
