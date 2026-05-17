@@ -476,7 +476,7 @@ export const imageService = {
           toast.success('Image transformed successfully!');
           return {
             imageId: statusData.id,
-            publicId: statusData.publicId,
+            publicId: statusData.publicId ?? imageId,
             status: statusData.status,
             url: statusData.url,
           };
