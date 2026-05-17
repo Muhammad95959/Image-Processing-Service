@@ -1,6 +1,8 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import Layout from './components/Layout';
 import Auth from './components/Auth';
 import SettingsCard, { SettingValue } from './components/SettingsCard';
@@ -28,6 +30,7 @@ const getEmailFromAuthPayload = (data: unknown): string => {
 };
 
 export default function Home() {
+  const router = useRouter();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userEmail, setUserEmail] = useState('');
   const [previewImage, setPreviewImage] = useState<string | null>(null);
@@ -69,12 +72,6 @@ export default function Home() {
   const [cartoonify, setCartoonify] = useState(false);
   const [cartoonifyAmount, setCartoonifyAmount] = useState('');
   const [art, setArt] = useState('');
-
-  // Style/Output
-  const [radius, setRadius] = useState('');
-  const [borderWidth, setBorderWidth] = useState('');
-  const [borderColor, setBorderColor] = useState('');
-  const [background, setBackground] = useState('');
 
   // Watermark
   const [watermarkText, setWatermarkText] = useState('');
@@ -396,35 +393,6 @@ export default function Home() {
     { label: 'Cartoonify', value: cartoonify, onChange: (val) => setCartoonify(val as boolean), type: 'checkbox' },
   ];
 
-  const styleSettings: SettingValue[] = [
-    {
-      label: 'Border Width',
-      value: borderWidth,
-      onChange: (val) => setBorderWidth(val as string),
-      type: 'number',
-    },
-    {
-      label: 'Border Color',
-      value: borderColor,
-      onChange: (val) => setBorderColor(val as string),
-    },
-    {
-      label: 'Background',
-      value: background,
-      onChange: (val) => setBackground(val as string),
-    },
-    {
-      label: 'Radius',
-      value: radius,
-      onChange: (val) => setRadius(val as string),
-      type: 'select',
-      options: [
-        { label: 'None', value: '' },
-        { label: 'Max', value: 'max' },
-      ],
-    },
-  ];
-
   const watermarkSettings: SettingValue[] = [
     {
       label: 'Watermark Text',
@@ -544,13 +512,31 @@ export default function Home() {
             <div className={styles.logo}>
               <h1 className={styles.appTitle}>Image Processor</h1>
             </div>
-            <Auth
-              isLoggedIn={isLoggedIn}
-              userEmail={userEmail}
-              onLogin={handleLogin}
-              onLogout={handleLogout}
-              onOpenAuthModal={() => setIsAuthModalOpen(true)}
-            />
+            <div className={styles.topBarActions}>
+              <Link
+                className={styles.galleryLink}
+                href="/my-images"
+                onClick={(event) => {
+                  if (!isLoggedIn) {
+                    event.preventDefault();
+                    setIsAuthModalOpen(true);
+                    return;
+                  }
+
+                  event.preventDefault();
+                  router.push('/my-images');
+                }}
+              >
+                My Images
+              </Link>
+              <Auth
+                isLoggedIn={isLoggedIn}
+                userEmail={userEmail}
+                onLogin={handleLogin}
+                onLogout={handleLogout}
+                onOpenAuthModal={() => setIsAuthModalOpen(true)}
+              />
+            </div>
           </div>
         }
         sidebar={

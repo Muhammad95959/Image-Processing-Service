@@ -27,6 +27,24 @@ interface UploadedImageResult {
   url?: string | null;
 }
 
+export interface ImageRecord {
+  id: string;
+  publicId: string | null;
+  url: string | null;
+  status: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+interface ImagesResponse {
+  status: string;
+  page: number;
+  limit: number;
+  count: number;
+  data: ImageRecord[];
+  message?: string;
+}
+
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 interface TransformParams {
@@ -244,7 +262,12 @@ export const imageService = {
     }
   },
 
-  async transformImage(params: TransformParams): Promise<any> {
+  async transformImage(params: TransformParams): Promise<{
+    imageId: string;
+    publicId: string;
+    status: string;
+    url?: string | null;
+  }> {
     try {
       const loadingToast = toast.loading('Transforming image...');
 
@@ -470,7 +493,7 @@ export const imageService = {
     }
   },
 
-  async getImage(publicId: string): Promise<any> {
+  async getImage(publicId: string): Promise<{ status: string; data: { url: string } }> {
     try {
       const response = await fetch(
         `${API_BASE_URL}/api/images/get-image?publicId=${encodeURIComponent(publicId)}`,
@@ -486,7 +509,7 @@ export const imageService = {
         throw new Error(errorData.message || 'Failed to fetch image');
       }
 
-      const data = await response.json();
+      const data: { status: string; data: { url: string } } = await response.json();
       return data;
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Failed to fetch image';
@@ -517,11 +540,11 @@ export const imageService = {
     }
   },
 
-  async getImages(page?: number, limit?: number): Promise<any> {
+  async getImages(page = 1, limit = 10): Promise<ImagesResponse> {
     try {
       const query = new URLSearchParams();
-      if (page) query.append('page', String(page));
-      if (limit) query.append('limit', String(limit));
+      query.append('page', String(page));
+      query.append('limit', String(limit));
 
       const response = await fetch(`${API_BASE_URL}/api/images?${query.toString()}`, {
         headers: {
@@ -534,10 +557,52 @@ export const imageService = {
         throw new Error(errorData.message || 'Failed to fetch images');
       }
 
-      const data = await response.json();
+      const data: ImagesResponse = await response.json();
       return data;
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Failed to fetch images';
+      toast.error(message);
+      throw error;
+    }
+  },
+
+  async getAllImages(limit = 24): Promise<ImageRecord[]> {
+    const collectedImages: ImageRecord[] = [];
+    let page = 1;
+
+    while (true) {
+      const response = await imageService.getImages(page, limit);
+      const pageImages = response.data || [];
+
+      collectedImages.push(...pageImages);
+
+      if (pageImages.length < limit) {
+        break;
+      }
+
+      page += 1;
+    }
+
+    return collectedImages;
+  },
+
+  async deleteImage(id: string): Promise<void> {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/images/${encodeURIComponent(id)}`, {
+        method: 'DELETE',
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
+        },
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || 'Failed to delete image');
+      }
+
+      toast.success('Image deleted successfully');
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to delete image';
       toast.error(message);
       throw error;
     }

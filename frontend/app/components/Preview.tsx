@@ -1,6 +1,6 @@
 'use client';
 
-import { ReactNode } from 'react';
+import { ReactNode, useState } from 'react';
 import styles from './Preview.module.css';
 
 interface PreviewProps {
@@ -18,6 +18,71 @@ export default function Preview({
   loading = false,
   error,
 }: PreviewProps) {
+  const [isShareOpen, setIsShareOpen] = useState(false);
+  const [isDownloading, setIsDownloading] = useState(false);
+
+  const fileName = imageUrl
+    ? (() => {
+        try {
+          const parsedUrl = new URL(imageUrl);
+          const lastSegment = parsedUrl.pathname.split('/').filter(Boolean).pop();
+          return lastSegment || 'image';
+        } catch {
+          return 'image';
+        }
+      })()
+    : 'image';
+
+  const shareText = encodeURIComponent('Check out this image');
+  const shareUrl = imageUrl ? encodeURIComponent(imageUrl) : '';
+
+  const handleDownload = async () => {
+    if (!imageUrl || isDownloading) {
+      return;
+    }
+
+    setIsShareOpen(false);
+    setIsDownloading(true);
+
+    try {
+      const response = await fetch(imageUrl, { mode: 'cors' });
+      const blob = await response.blob();
+      const objectUrl = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = objectUrl;
+      link.download = fileName;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(objectUrl);
+    } catch {
+      const link = document.createElement('a');
+      link.href = imageUrl;
+      link.download = fileName;
+      link.target = '_blank';
+      link.rel = 'noreferrer';
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    } finally {
+      setIsDownloading(false);
+    }
+  };
+
+  const openShareLink = (platform: 'telegram' | 'whatsapp') => {
+    if (!imageUrl) {
+      return;
+    }
+
+    const targetUrl =
+      platform === 'telegram'
+        ? `https://t.me/share/url?url=${shareUrl}&text=${shareText}`
+        : `https://wa.me/?text=${shareText}%20${shareUrl}`;
+
+    window.open(targetUrl, '_blank', 'noopener,noreferrer');
+    setIsShareOpen(false);
+  };
+
   return (
     <div className={styles.container}>
       <div className={styles.header}>
@@ -73,8 +138,30 @@ export default function Preview({
 
       {imageUrl && !loading && (
         <div className={styles.actions}>
-          <button className={styles.button}>Download</button>
-          <button className={styles.button}>Share</button>
+          <button className={styles.button} onClick={handleDownload} disabled={isDownloading}>
+            {isDownloading ? 'Downloading...' : 'Download'}
+          </button>
+          <div className={styles.shareWrapper}>
+            <button
+              className={styles.button}
+              onClick={() => setIsShareOpen((current) => !current)}
+              aria-haspopup="menu"
+              aria-expanded={isShareOpen}
+            >
+              Share
+            </button>
+
+            {isShareOpen && (
+              <div className={styles.shareMenu} role="menu">
+                <button className={styles.shareOption} onClick={() => openShareLink('telegram')}>
+                  Telegram
+                </button>
+                <button className={styles.shareOption} onClick={() => openShareLink('whatsapp')}>
+                  WhatsApp
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       )}
     </div>
