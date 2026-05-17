@@ -95,11 +95,9 @@ export default function Home() {
   // Filters
   const [grayscale, setGrayscale] = useState(false);
   const [sepia, setSepia] = useState(false);
-  coauthService.logout();
-    setIsLoggedIn(false);
-    setUserEmail('');
-    setPreviewImage(null);
-    localStorage.removeItem('userEmail'xelate] = useState(0);
+  const [negate, setNegate] = useState(false);
+  const [blur, setBlur] = useState(0);
+  const [pixelate, setPixelate] = useState(0);
   const [vignette, setVignette] = useState(0);
   const [oilPaint, setOilPaint] = useState(0);
   const [cartoonify, setCartoonify] = useState(false);
