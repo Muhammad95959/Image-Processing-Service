@@ -25,9 +25,10 @@ export const authService = {
 
       const result = await response.json();
       
-      // Store token
+      // Store token and email
       if (result.data.token) {
         localStorage.setItem('token', result.data.token);
+        localStorage.setItem('userEmail', email);
       }
       
       toast.success('Logged in successfully!');
@@ -42,6 +43,7 @@ export const authService = {
   async logout(): Promise<void> {
     try {
       localStorage.removeItem('token');
+      localStorage.removeItem('userEmail');
       toast.success('Logged out successfully!');
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Logout failed';

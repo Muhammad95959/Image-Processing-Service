@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Layout from './components/Layout';
@@ -9,6 +9,7 @@ import SettingsCard, { SettingValue } from './components/SettingsCard';
 import Preview from './components/Preview';
 import AuthModal from './components/AuthModal';
 import { imageService } from './services/imageService';
+import { authService } from './services/authService';
 import styles from './page.module.css';
 
 const getEmailFromAuthPayload = (data: unknown): string => {
@@ -36,6 +37,36 @@ export default function Home() {
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+
+  // Restore authentication state from localStorage on mount and whenever storage changes
+  useEffect(() => {
+    const restoreAuthState = () => {
+      const token = localStorage.getItem('token');
+      const email = localStorage.getItem('userEmail');
+      
+      if (token) {
+        setIsLoggedIn(true);
+        if (email) {
+          setUserEmail(email);
+        }
+      } else {
+        setIsLoggedIn(false);
+        setUserEmail('');
+      }
+    };
+
+    // Restore on initial mount
+    restoreAuthState();
+
+    // Listen for storage changes (e.g., login/logout from another tab)
+    window.addEventListener('storage', restoreAuthState);
+    window.addEventListener('focus', restoreAuthState);
+
+    return () => {
+      window.removeEventListener('storage', restoreAuthState);
+      window.removeEventListener('focus', restoreAuthState);
+    };
+  }, []);
   
   // Image ID for transformations
   const [imageId, setImageId] = useState('');
@@ -64,9 +95,11 @@ export default function Home() {
   // Filters
   const [grayscale, setGrayscale] = useState(false);
   const [sepia, setSepia] = useState(false);
-  const [negate, setNegate] = useState(false);
-  const [blur, setBlur] = useState(0);
-  const [pixelate, setPixelate] = useState(0);
+  coauthService.logout();
+    setIsLoggedIn(false);
+    setUserEmail('');
+    setPreviewImage(null);
+    localStorage.removeItem('userEmail'xelate] = useState(0);
   const [vignette, setVignette] = useState(0);
   const [oilPaint, setOilPaint] = useState(0);
   const [cartoonify, setCartoonify] = useState(false);
@@ -94,6 +127,7 @@ export default function Home() {
   };
 
   const handleLogout = () => {
+    authService.logout();
     setIsLoggedIn(false);
     setUserEmail('');
     setPreviewImage(null);
@@ -686,8 +720,10 @@ export default function Home() {
         isOpen={isAuthModalOpen}
         onClose={() => setIsAuthModalOpen(false)}
         onLoginSuccess={(data) => {
+          const email = getEmailFromAuthPayload(data);
           setIsLoggedIn(true);
-          setUserEmail(getEmailFromAuthPayload(data));
+          setUserEmail(email);
+          localStorage.setItem('userEmail', email);
         }}
         onRegisterSuccess={() => {
           setIsLoggedIn(false);
