@@ -1,6 +1,8 @@
 # ShutterNode
 
-A production-ready **Node.js + TypeScript backend** for user authentication and image processing. The project supports secure user accounts, image uploads via Cloudinary, image transformations, pagination, and background processing with a clean layered architecture.
+Monorepo containing two main projects: a `backend` (API + worker) and a `frontend` (Next.js UI).
+
+The backend implements a production-ready **Node.js + TypeScript** API for user authentication and image processing. The frontend is a minimal Next.js application that consumes the backend APIs.
 
 ---
 
@@ -20,54 +22,18 @@ A production-ready **Node.js + TypeScript backend** for user authentication and 
 ## Project Structure
 
 ```
-backend
-├── package.json
-├── tsconfig.json
-├── jest.config.ts
-├── prisma
-│   ├── schema.prisma
-│   └── migrations
-├── src
-│   ├── app.ts
-│   ├── server.ts
-│   ├── worker.ts
-│   ├── cache
-│   │   └── redis.ts
-│   ├── config
-│   │   └── cloudinary.ts
-│   ├── middlewares
-│   │   ├── auth.ts
-│   │   ├── requestLogger.ts
-│   │   └── validate.ts
-│   ├── modules
-│   │   ├── users
-│   │   │   ├── user.controller.ts
-│   │   │   ├── user.controller.spec.ts
-│   │   │   ├── user.model.ts
-│   │   │   ├── user.route.ts
-│   │   │   ├── user.service.ts
-│   │   │   └── user.validation.ts
-│   │   └── images
-│   │       ├── image.controller.ts
-│   │       ├── image.controller.spec.ts
-│   │       ├── image.model.ts
-│   │       ├── image.route.ts
-│   │       ├── image.service.ts
-│   │       └── image.validation.ts
-│   ├── queue
-│   │   └── bullmq.ts
-│   ├── storage
-│   │   └── multer.ts
-│   ├── types
-│   │   ├── customError.ts
-│   │   └── HTTPStatusText.ts
-│   └── utils
-│       ├── errorHandler.ts
-│       ├── hash.ts
-│       ├── jwt.ts
-│       ├── logger.ts
-│       ├── rateLimiter.ts
-│       └── verifyToken.ts
+frontend/
+backend/
+  ├── package.json
+  ├── tsconfig.json
+  ├── prisma/
+  │   ├── schema.prisma
+  │   └── migrations/
+  └── src/
+      ├── app.ts
+      ├── server.ts
+      ├── worker.ts
+      └── ...
 ```
 
 - `backend/src/app.ts` sets up routes and middleware
@@ -93,7 +59,7 @@ backend
 
 ## Environment Variables
 
-Create a `.env` file:
+Create a `.env` file for the `backend` (example):
 
 ```env
 DATABASE_URL="file:./dev.db"
@@ -101,25 +67,36 @@ JWT_SECRET=your_jwt_secret
 CLOUDINARY_CLOUD_NAME=xxxx
 CLOUDINARY_API_KEY=xxxx
 CLOUDINARY_API_SECRET=xxxx
+REDIS_URL=redis://localhost:6379
 ```
 
 ---
 
 ## Installation
 
+This repository is split into two projects. Install dependencies either per-package or using a workspace-aware package manager (e.g. `pnpm`).
+
+Per-package (works with `npm` / `yarn`):
+
 ```bash
-npm install
+# Backend
+cd backend && npm install
+
+# Frontend
+cd ../frontend && npm install
 ```
 
-Generate Prisma client:
+Or, if you use `pnpm` with workspaces from the repository root:
 
 ```bash
+pnpm install
+```
+
+### Backend - generate DB client and apply migrations
+
+```bash
+cd backend
 npx prisma generate
-```
-
-Apply database schema:
-
-```bash
 npx prisma migrate dev --name init
 ```
 
@@ -127,15 +104,19 @@ npx prisma migrate dev --name init
 
 ## Running the Project
 
-### Backend Development
+
+## Running the Project
+
+Run each part separately depending on what you need to work on.
+
+Backend (development):
 
 ```bash
 cd backend
-npm install
 npm run dev
 ```
 
-### Backend Production
+Backend (production build):
 
 ```bash
 cd backend
@@ -143,32 +124,22 @@ npm run build
 npm start
 ```
 
-### Backend Worker (Background Jobs)
+Worker (background jobs):
 
 ```bash
 cd backend
 npm run start_worker
 ```
 
-### Frontend (Next.js)
+Frontend (development):
 
 ```bash
 cd frontend
-npm install
 npm run dev
 ```
 
 ---
 
-## Frontend (Next.js) setup
-
-The repository now includes a minimal GitHub-themed dark frontend in `frontend/` that uses all backend routes.
-
-```bash
-cd frontend
-npm install
-npm run dev
-```
 
 - Frontend URL: http://localhost:3000
 - API base URL: http://localhost:5000 (adjust with `NEXT_PUBLIC_API_BASE_URL` in `frontend/.env.local`)
@@ -225,4 +196,3 @@ All errors go through a centralized error handler:
 }
 ```
 
-Solution for Image Processing Service Project https://roadmap.sh/projects/image-processing-service
